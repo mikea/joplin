@@ -17,7 +17,7 @@ const rules = {
 	code_inline: require('./MdToHtml/rules/code_inline'),
 	fountain: require('./MdToHtml/rules/fountain'),
 	mermaid: require('./MdToHtml/rules/mermaid').default,
-	wiki: require('./MdToHtml/rules/wiki_links').default,
+	wiki_links: require('./MdToHtml/rules/wiki_links').default,
 };
 
 const setupLinkify = require('./MdToHtml/setupLinkify');
@@ -187,8 +187,6 @@ class MdToHtml {
 			plugins: {},
 		}, options);
 
-		console.error('render: options=', options);
-
 		// The "codeHighlightCacheKey" option indicates what set of cached object should be
 		// associated with this particular Markdown body. It is only used to allow us to
 		// clear the cache whenever switching to a different note.
@@ -285,7 +283,6 @@ class MdToHtml {
 		// Using the `context` object, a plugin can define what additional assets they need (css, fonts, etc.) using context.pluginAssets.
 		// The calling application will need to handle loading these assets.
 
-		console.error('rules', rules);
 		for (const key in rules) {
 			if (!this.pluginEnabled(key)) continue;
 			const rule = rules[key];
@@ -301,9 +298,7 @@ class MdToHtml {
 
 		setupLinkify(markdownIt);
 
-		console.info('rendering', body);
 		const renderedBody = markdownIt.render(body);
-		console.info('renderedBody', renderedBody);
 
 		let cssStrings = noteStyle(options.theme);
 

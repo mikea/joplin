@@ -1,3 +1,6 @@
+// Replaces [[Wiki Links]] by links to nodes.
+
+// [[Page/Path|Optional Title]]
 const regex = /\[\[([\w\s/]+)(\|([\w\s/]+))?\]\]/;
 
 function installRule(markdownIt: any) {

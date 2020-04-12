@@ -851,18 +851,14 @@ class NoteTextComponent extends React.Component {
 
 			if (notes && notes.length) {
 				// TODO: if length > 1 offer user a choice
-				if (notes.length === 1) {
-					const note = notes[0];
-					this.props.dispatch({
-						type: 'FOLDER_AND_NOTE_SELECT',
-						folderId: note.parent_id,
-						noteId: note.id,
-						hash: url.hash,
-						historyAction: 'goto',
-					});
-				} else {
-					bridge().showErrorMessageBox('ERROR: TOO MANY NOTES');
-				}
+				const note = notes[0];
+				this.props.dispatch({
+					type: 'FOLDER_AND_NOTE_SELECT',
+					folderId: note.parent_id,
+					noteId: note.id,
+					hash: url.hash,
+					historyAction: 'goto',
+				});
 			} else {
 				// TODO: offer user to create a new note
 				bridge().showErrorMessageBox(`${_('Note not found: ')}${title}`);

@@ -138,7 +138,10 @@ class NoteTextComponent extends React.Component {
 		this.editorMaxScrollTop_ = 0;
 		this.onAfterEditorRender_ = () => {
 			const r = this.editor_.editor.renderer;
-			this.editorMaxScrollTop_ = Math.max(0, r.layerConfig.maxHeight - r.$size.scrollerHeight);
+			this.editorMaxScrollTop_ = Math.max(
+				0,
+				r.layerConfig.maxHeight - r.$size.scrollerHeight
+			);
 
 			if (this.restoreScrollTop_ !== null) {
 				this.editorSetScrollTop(this.restoreScrollTop_);
@@ -146,14 +149,20 @@ class NoteTextComponent extends React.Component {
 			}
 		};
 
-		this.onAlarmChange_ = event => {
-			if (event.noteId === this.props.noteId) this.scheduleReloadNote(this.props);
+		this.onAlarmChange_ = (event) => {
+			if (event.noteId === this.props.noteId) {
+				this.scheduleReloadNote(this.props);
+			}
 		};
-		this.onNoteTypeToggle_ = event => {
-			if (event.noteId === this.props.noteId) this.scheduleReloadNote(this.props);
+		this.onNoteTypeToggle_ = (event) => {
+			if (event.noteId === this.props.noteId) {
+				this.scheduleReloadNote(this.props);
+			}
 		};
-		this.onTodoToggle_ = event => {
-			if (event.noteId === this.props.noteId) this.scheduleReloadNote(this.props);
+		this.onTodoToggle_ = (event) => {
+			if (event.noteId === this.props.noteId) {
+				this.scheduleReloadNote(this.props);
+			}
 		};
 
 		this.onEditorPaste_ = async (event = null) => {
@@ -168,7 +177,9 @@ class NoteTextComponent extends React.Component {
 					const image = clipboard.readImage();
 
 					const fileExt = mimeUtils.toFileExtension(format);
-					const filePath = `${Setting.value('tempDir')}/${md5(Date.now())}.${fileExt}`;
+					const filePath = `${Setting.value('tempDir')}/${md5(
+						Date.now()
+					)}.${fileExt}`;
 
 					await shim.writeImageToFile(image, format, filePath);
 					await this.commandAttachFile([filePath]);
@@ -177,7 +188,7 @@ class NoteTextComponent extends React.Component {
 			}
 		};
 
-		this.onEditorKeyDown_ = event => {
+		this.onEditorKeyDown_ = (event) => {
 			const lastKeys = this.state.lastKeys.slice();
 			lastKeys.push(event.key);
 			while (lastKeys.length > 2) lastKeys.splice(0, 1);
@@ -228,7 +239,7 @@ class NoteTextComponent extends React.Component {
 			menu.popup(bridge().window());
 		};
 
-		this.onDrop_ = async event => {
+		this.onDrop_ = async (event) => {
 			const dt = event.dataTransfer;
 			const createFileURL = event.altKey;
 
@@ -263,9 +274,7 @@ class NoteTextComponent extends React.Component {
 				return;
 			}
 
-			const ranges = this.rawEditor()
-				.getSelection()
-				.getAllRanges();
+			const ranges = this.rawEditor().getSelection().getAllRanges();
 			if (!ranges || !ranges.length || !this.state.note) {
 				this.selectionRange_ = null;
 			} else {
@@ -273,9 +282,13 @@ class NoteTextComponent extends React.Component {
 				if (process.platform === 'linux') {
 					const textRange = this.textOffsetSelection();
 					if (textRange.start != textRange.end) {
-						clipboard.writeText(this.state.note.body.slice(
-							Math.min(textRange.start, textRange.end),
-							Math.max(textRange.end, textRange.start)), 'selection');
+						clipboard.writeText(
+							this.state.note.body.slice(
+								Math.min(textRange.start, textRange.end),
+								Math.max(textRange.end, textRange.start)
+							),
+							'selection'
+						);
 					}
 				}
 			}
@@ -289,14 +302,14 @@ class NoteTextComponent extends React.Component {
 			updateSelectionRange();
 		};
 
-		this.externalEditWatcher_noteChange = event => {
+		this.externalEditWatcher_noteChange = (event) => {
 			if (!this.state.note || !this.state.note.id) return;
 			if (event.id === this.state.note.id) {
 				this.scheduleReloadNote(this.props);
 			}
 		};
 
-		this.refreshResource = async event => {
+		this.refreshResource = async (event) => {
 			if (!this.state.note || !this.state.note.body) return;
 			const resourceIds = await Note.linkedResourceIds(this.state.note.body);
 			if (resourceIds.indexOf(event.id) >= 0) {
@@ -306,7 +319,7 @@ class NoteTextComponent extends React.Component {
 			}
 		};
 
-		this.noteSearchBar_change = query => {
+		this.noteSearchBar_change = (query) => {
 			this.setState({
 				localSearch: {
 					query: query,
@@ -318,7 +331,7 @@ class NoteTextComponent extends React.Component {
 			});
 		};
 
-		const noteSearchBarNextPrevious = inc => {
+		const noteSearchBarNextPrevious = (inc) => {
 			const ls = Object.assign({}, this.state.localSearch);
 			ls.selectedIndex += inc;
 			ls.timestamp = Date.now();
@@ -361,11 +374,21 @@ class NoteTextComponent extends React.Component {
 	}
 
 	currentTextOffset() {
-		return this.cursorPositionToTextOffset(this.editor_.editor.getCursorPosition(), this.state.note.body);
+		return this.cursorPositionToTextOffset(
+			this.editor_.editor.getCursorPosition(),
+			this.state.note.body
+		);
 	}
 
 	cursorPositionToTextOffset(cursorPos, body) {
-		if (!this.editor_ || !this.editor_.editor || !this.state.note || !this.state.note.body) return 0;
+		if (
+			!this.editor_ ||
+			!this.editor_.editor ||
+			!this.state.note ||
+			!this.state.note.body
+		) {
+			return 0;
+		}
 
 		const noteLines = body.split('\n');
 
@@ -416,8 +439,14 @@ class NoteTextComponent extends React.Component {
 		// If the note has been modified in another editor, wait for it to be saved
 		// before loading it in this editor. This is particularly relevant when
 		// switching layout from WYSIWYG to this editor before the note has finished saving.
-		while (this.props.noteId && this.props.editorNoteStatuses[this.props.noteId] === 'saving') {
-			console.info('Waiting for note to be saved...', this.props.editorNoteStatuses);
+		while (
+			this.props.noteId &&
+			this.props.editorNoteStatuses[this.props.noteId] === 'saving'
+		) {
+			console.info(
+				'Waiting for note to be saved...',
+				this.props.editorNoteStatuses
+			);
 			await time.msleep(100);
 		}
 
@@ -429,10 +458,14 @@ class NoteTextComponent extends React.Component {
 			noteTags = this.props.noteTags || [];
 			await this.handleResourceDownloadMode(note);
 		} else {
-			console.warn('Trying to load a note with no ID - should no longer be possible');
+			console.warn(
+				'Trying to load a note with no ID - should no longer be possible'
+			);
 		}
 
-		const folder = note ? Folder.byId(this.props.folders, note.parent_id) : null;
+		const folder = note
+			? Folder.byId(this.props.folders, note.parent_id)
+			: null;
 
 		this.setState({
 			lastSavedNote: Object.assign({}, note),
@@ -444,7 +477,10 @@ class NoteTextComponent extends React.Component {
 
 		this.lastLoadedNoteId_ = note ? note.id : null;
 
-		this.updateHtml(note ? note.markup_language : null, note && note.body ? note.body : '');
+		this.updateHtml(
+			note ? note.markup_language : null,
+			note && note.body ? note.body : ''
+		);
 
 		eventManager.on('alarmChange', this.onAlarmChange_);
 		eventManager.on('noteTypeToggle', this.onNoteTypeToggle_);
@@ -452,7 +488,10 @@ class NoteTextComponent extends React.Component {
 
 		shared.installResourceHandling(this.refreshResource);
 
-		ExternalEditWatcher.instance().on('noteChange', this.externalEditWatcher_noteChange);
+		ExternalEditWatcher.instance().on(
+			'noteChange',
+			this.externalEditWatcher_noteChange
+		);
 	}
 
 	componentWillUnmount() {
@@ -466,7 +505,10 @@ class NoteTextComponent extends React.Component {
 
 		shared.uninstallResourceHandling(this.refreshResource);
 
-		ExternalEditWatcher.instance().off('noteChange', this.externalEditWatcher_noteChange);
+		ExternalEditWatcher.instance().off(
+			'noteChange',
+			this.externalEditWatcher_noteChange
+		);
 	}
 
 	componentDidUpdate() {
@@ -481,7 +523,12 @@ class NoteTextComponent extends React.Component {
 	}
 
 	webviewRef() {
-		if (!this.webviewRef_.current || !this.webviewRef_.current.wrappedInstance) return null;
+		if (
+			!this.webviewRef_.current ||
+			!this.webviewRef_.current.wrappedInstance
+		) {
+			return null;
+		}
 		if (!this.webviewRef_.current.wrappedInstance.domReady()) return null;
 		return this.webviewRef_.current.wrappedInstance;
 	}
@@ -489,7 +536,7 @@ class NoteTextComponent extends React.Component {
 	async saveIfNeeded(saveIfNewNote = false, options = {}) {
 		if (this.state.loading) return;
 
-		const forceSave = saveIfNewNote && (this.state.note && !this.state.note.id);
+		const forceSave = saveIfNewNote && this.state.note && !this.state.note.id;
 
 		if (this.scheduleSaveTimeout_) clearTimeout(this.scheduleSaveTimeout_);
 		this.scheduleSaveTimeout_ = null;
@@ -535,7 +582,9 @@ class NoteTextComponent extends React.Component {
 	// delay reloading a bit and make sure that only one reload operation is performed.
 	async reloadNote(props, options = null) {
 		if (!options) options = {};
-		if (!('noReloadIfLocalChanges' in options)) options.noReloadIfLocalChanges = false;
+		if (!('noReloadIfLocalChanges' in options)) {
+			options.noReloadIfLocalChanges = false;
+		}
 
 		await this.saveIfNeeded();
 
@@ -571,7 +620,8 @@ class NoteTextComponent extends React.Component {
 		// If we are loading nothing (noteId == null), make sure to
 		// set webviewReady to false too because the webview component
 		// is going to be removed in render().
-		const webviewReady = !!this.webviewRef_.current && this.state.webviewReady && !!noteId;
+		const webviewReady =
+			!!this.webviewRef_.current && this.state.webviewReady && !!noteId;
 
 		// Scroll back to top when loading new note
 		if (loadingNewNote) {
@@ -606,7 +656,10 @@ class NoteTextComponent extends React.Component {
 				setTimeout(() => {
 					// If we have an anchor hash, jump to that anchor
 					if (this.props.selectedNoteHash) {
-						this.webviewRef_.current.wrappedInstance.send('scrollToHash', this.props.selectedNoteHash);
+						this.webviewRef_.current.wrappedInstance.send(
+							'scrollToHash',
+							this.props.selectedNoteHash
+						);
 					} else {
 						// Otherwise restore the normal scroll position
 						this.setEditorPercentScroll(scrollPercent ? scrollPercent : 0);
@@ -650,13 +703,20 @@ class NoteTextComponent extends React.Component {
 
 		// if (newState.note) await shared.refreshAttachedResources(this, newState.note.body);
 
-		await this.updateHtml(newState.note ? newState.note.markup_language : null, newState.note ? newState.note.body : '');
+		await this.updateHtml(
+			newState.note ? newState.note.markup_language : null,
+			newState.note ? newState.note.body : ''
+		);
 
 		defer();
 	}
 
 	async handleResourceDownloadMode(note) {
-		if (note && note.body && Setting.value('sync.resourceDownloadMode') === 'auto') {
+		if (
+			note &&
+			note.body &&
+			Setting.value('sync.resourceDownloadMode') === 'auto'
+		) {
 			const resourceIds = await Note.linkedResourceIds(note.body);
 			await ResourceFetcher.instance().markForDownload(resourceIds);
 		}
@@ -665,14 +725,24 @@ class NoteTextComponent extends React.Component {
 	async UNSAFE_componentWillReceiveProps(nextProps) {
 		if ('noteId' in nextProps && nextProps.noteId !== this.props.noteId) {
 			await this.scheduleReloadNote(nextProps);
-		} else if ('noteTags' in nextProps && this.areNoteTagsModified(nextProps.noteTags, this.state.noteTags)) {
+		} else if (
+			'noteTags' in nextProps &&
+			this.areNoteTagsModified(nextProps.noteTags, this.state.noteTags)
+		) {
 			this.setState({
 				noteTags: nextProps.noteTags,
 			});
 		}
 
-		if (nextProps.syncStarted !== this.props.syncStarted && 'syncStarted' in nextProps && !nextProps.syncStarted && !this.isModified()) {
-			await this.scheduleReloadNote(nextProps, { noReloadIfLocalChanges: true });
+		if (
+			nextProps.syncStarted !== this.props.syncStarted &&
+			'syncStarted' in nextProps &&
+			!nextProps.syncStarted &&
+			!this.isModified()
+		) {
+			await this.scheduleReloadNote(nextProps, {
+				noReloadIfLocalChanges: true,
+			});
 		}
 
 		if (nextProps.windowCommand) {
@@ -791,7 +861,11 @@ class NoteTextComponent extends React.Component {
 						label: _('Open...'),
 						click: async () => {
 							const ok = bridge().openExternal(`file://${resourcePath}`);
-							if (!ok) bridge().showErrorMessageBox(_('This file could not be opened: %s', resourcePath));
+							if (!ok) {
+								bridge().showErrorMessageBox(
+									_('This file could not be opened: %s', resourcePath)
+								);
+							}
 						},
 					})
 				);
@@ -801,7 +875,9 @@ class NoteTextComponent extends React.Component {
 						label: _('Save as...'),
 						click: async () => {
 							const filePath = bridge().showSaveDialog({
-								defaultPath: resource.filename ? resource.filename : resource.title,
+								defaultPath: resource.filename
+									? resource.filename
+									: resource.title,
 							});
 							if (!filePath) return;
 							await fs.copy(resourcePath, filePath);
@@ -841,6 +917,33 @@ class NoteTextComponent extends React.Component {
 			}
 
 			menu.popup(bridge().window());
+		} else if (msg.indexOf('joplin://by_title?' === 0)) {
+			const url = new URL(msg);
+			const title = decodeURIComponent(url.search.substr(1));
+			const notes = await Note.search({
+				conditions: ['title=?'],
+				conditionsParams: [title],
+			});
+
+			if (notes && notes.length) {
+				if (notes.length === 1) {
+					const note = notes[0];
+					this.props.dispatch({
+						type: 'FOLDER_AND_NOTE_SELECT',
+						folderId: note.parent_id,
+						noteId: note.id,
+						hash: url.hash,
+						historyAction: 'goto',
+					});
+				} else {
+					bridge().showErrorMessageBox('ERROR: TOO MANY NOTES');
+					console.error('***** NOTES', notes);
+				}
+			} else {
+				bridge().showErrorMessageBox('ERROR: NOTE NOT FOUND');
+			}
+
+			return;
 		} else if (msg.indexOf('joplin://') === 0) {
 			const resourceUrlInfo = urlUtils.parseResourceUrl(msg);
 			const itemId = resourceUrlInfo.itemId;
@@ -850,11 +953,20 @@ class NoteTextComponent extends React.Component {
 
 			if (item.type_ === BaseModel.TYPE_RESOURCE) {
 				const localState = await Resource.localState(item);
-				if (localState.fetch_status !== Resource.FETCH_STATUS_DONE || !!item.encryption_blob_encrypted) {
+				if (
+					localState.fetch_status !== Resource.FETCH_STATUS_DONE ||
+					!!item.encryption_blob_encrypted
+				) {
 					if (localState.fetch_status === Resource.FETCH_STATUS_ERROR) {
-						bridge().showErrorMessageBox(`${_('There was an error downloading this attachment:')}\n\n${localState.fetch_error}`);
+						bridge().showErrorMessageBox(
+							`${_('There was an error downloading this attachment:')}\n\n${
+								localState.fetch_error
+							}`
+						);
 					} else {
-						bridge().showErrorMessageBox(_('This attachment is not downloaded or not decrypted yet'));
+						bridge().showErrorMessageBox(
+							_('This attachment is not downloaded or not decrypted yet')
+						);
 					}
 					return;
 				}
@@ -923,7 +1035,9 @@ class NoteTextComponent extends React.Component {
 			});
 		}
 
-		if (this.webviewRef_.current) this.webviewRef_.current.wrappedInstance.send('setPercentScroll', p);
+		if (this.webviewRef_.current) {
+			this.webviewRef_.current.wrappedInstance.send('setPercentScroll', p);
+		}
 	}
 
 	editor_scroll() {
@@ -939,7 +1053,6 @@ class NoteTextComponent extends React.Component {
 	}
 
 	webview_domReady() {
-
 		console.info('webview_domReady', this.webviewRef_.current);
 		if (!this.webviewRef_.current) return;
 
@@ -956,10 +1069,19 @@ class NoteTextComponent extends React.Component {
 		if (this.editor_ === element) return;
 
 		if (this.editor_) {
-			this.editor_.editor.renderer.off('afterRender', this.onAfterEditorRender_);
-			document.querySelector('#note-editor').removeEventListener('paste', this.onEditorPaste_, true);
-			document.querySelector('#note-editor').removeEventListener('keydown', this.onEditorKeyDown_);
-			document.querySelector('#note-editor').removeEventListener('contextmenu', this.onEditorContextMenu_);
+			this.editor_.editor.renderer.off(
+				'afterRender',
+				this.onAfterEditorRender_
+			);
+			document
+				.querySelector('#note-editor')
+				.removeEventListener('paste', this.onEditorPaste_, true);
+			document
+				.querySelector('#note-editor')
+				.removeEventListener('keydown', this.onEditorKeyDown_);
+			document
+				.querySelector('#note-editor')
+				.removeEventListener('contextmenu', this.onEditorContextMenu_);
 			this.editor_.editor.indent = this.indentOrig;
 		}
 
@@ -988,9 +1110,15 @@ class NoteTextComponent extends React.Component {
 				});
 			}
 
-			document.querySelector('#note-editor').addEventListener('paste', this.onEditorPaste_, true);
-			document.querySelector('#note-editor').addEventListener('keydown', this.onEditorKeyDown_);
-			document.querySelector('#note-editor').addEventListener('contextmenu', this.onEditorContextMenu_);
+			document
+				.querySelector('#note-editor')
+				.addEventListener('paste', this.onEditorPaste_, true);
+			document
+				.querySelector('#note-editor')
+				.addEventListener('keydown', this.onEditorKeyDown_);
+			document
+				.querySelector('#note-editor')
+				.addEventListener('contextmenu', this.onEditorContextMenu_);
 
 			const lineLeftSpaces = function(line) {
 				let output = '';
@@ -1007,16 +1135,33 @@ class NoteTextComponent extends React.Component {
 			// Disable Markdown auto-completion (eg. auto-adding a dash after a line with a dash.
 			// https://github.com/ajaxorg/ace/issues/2754
 			const that = this; // The "this" within the function below refers to something else
-			this.editor_.editor.getSession().getMode().getNextLineIndent = function(state, line) {
+			this.editor_.editor.getSession().getMode().getNextLineIndent = function(
+				state,
+				line
+			) {
 				const ls = that.state.lastKeys;
-				if (ls.length >= 2 && ls[ls.length - 1] === 'Enter' && ls[ls.length - 2] === 'Enter') return this.$getIndent(line);
+				if (
+					ls.length >= 2 &&
+					ls[ls.length - 1] === 'Enter' &&
+					ls[ls.length - 2] === 'Enter'
+				) {
+					return this.$getIndent(line);
+				}
 
 				const leftSpaces = lineLeftSpaces(line);
 				const lineNoLeftSpaces = line.trimLeft();
 
-				if (lineNoLeftSpaces.indexOf('- [ ] ') === 0 || lineNoLeftSpaces.indexOf('- [x] ') === 0 || lineNoLeftSpaces.indexOf('- [X] ') === 0) return `${leftSpaces}- [ ] `;
+				if (
+					lineNoLeftSpaces.indexOf('- [ ] ') === 0 ||
+					lineNoLeftSpaces.indexOf('- [x] ') === 0 ||
+					lineNoLeftSpaces.indexOf('- [X] ') === 0
+				) {
+					return `${leftSpaces}- [ ] `;
+				}
 				if (lineNoLeftSpaces.indexOf('- ') === 0) return `${leftSpaces}- `;
-				if (lineNoLeftSpaces.indexOf('* ') === 0 && line.trim() !== '* * *') return `${leftSpaces}* `;
+				if (lineNoLeftSpaces.indexOf('* ') === 0 && line.trim() !== '* * *') {
+					return `${leftSpaces}* `;
+				}
 
 				const bulletNumber = markdownUtils.olLineNumber(lineNoLeftSpaces);
 				if (bulletNumber) return `${leftSpaces + (bulletNumber + 1)}. `;
@@ -1038,8 +1183,13 @@ class NoteTextComponent extends React.Component {
 					if (tokens.length > 0 && tokens[0].type == 'markup.list') {
 						if (tokens[0].value.search(/\d+\./) != -1) {
 							// Resets numbered list to 1.
-							this.session.replace({ start: { row, column: 0 }, end: { row, column: tokens[0].value.length } },
-								tokens[0].value.replace(/\d+\./, '1.'));
+							this.session.replace(
+								{
+									start: { row, column: 0 },
+									end: { row, column: tokens[0].value.length },
+								},
+								tokens[0].value.replace(/\d+\./, '1.')
+							);
 						}
 
 						this.session.indentRows(row, row, '\t');
@@ -1080,8 +1230,11 @@ class NoteTextComponent extends React.Component {
 		let bodyToRender = body;
 
 		if (bodyToRender === null) {
-			bodyToRender = this.state.note && this.state.note.body ? this.state.note.body : '';
-			markupLanguage = this.state.note ? this.state.note.markup_language : MarkupToHtml.MARKUP_LANGUAGE_MARKDOWN;
+			bodyToRender =
+				this.state.note && this.state.note.body ? this.state.note.body : '';
+			markupLanguage = this.state.note
+				? this.state.note.markup_language
+				: MarkupToHtml.MARKUP_LANGUAGE_MARKDOWN;
 		}
 
 		if (!markupLanguage) markupLanguage = MarkupToHtml.MARKUP_LANGUAGE_MARKDOWN;
@@ -1100,12 +1253,24 @@ class NoteTextComponent extends React.Component {
 
 		const visiblePanes = this.props.visiblePanes || ['editor', 'viewer'];
 
-		if (!bodyToRender.trim() && visiblePanes.indexOf('viewer') >= 0 && visiblePanes.indexOf('editor') < 0) {
+		if (
+			!bodyToRender.trim() &&
+			visiblePanes.indexOf('viewer') >= 0 &&
+			visiblePanes.indexOf('editor') < 0
+		) {
 			// Fixes https://github.com/laurent22/joplin/issues/217
-			bodyToRender = `<i>${_('This note has no content. Click on "%s" to toggle the editor and edit the note.', _('Layout'))}</i>`;
+			bodyToRender = `<i>${_(
+				'This note has no content. Click on "%s" to toggle the editor and edit the note.',
+				_('Layout')
+			)}</i>`;
 		}
 
-		const result = await this.markupToHtml().render(markupLanguage, bodyToRender, theme, mdOptions);
+		const result = await this.markupToHtml().render(
+			markupLanguage,
+			bodyToRender,
+			theme,
+			mdOptions
+		);
 
 		this.setState({
 			bodyHtml: result.html,
@@ -1206,7 +1371,8 @@ class NoteTextComponent extends React.Component {
 		} else {
 			this.setState({
 				showLocalSearch: true,
-				localSearch: Object.assign({}, this.localSearchDefaultState) });
+				localSearch: Object.assign({}, this.localSearchDefaultState),
+			});
 		}
 
 		this.props.dispatch({
@@ -1267,7 +1433,9 @@ class NoteTextComponent extends React.Component {
 	async printTo_(target, options) {
 		// Concurrent print calls are disallowed to avoid incorrect settings being restored upon completion
 		if (this.isPrinting_) {
-			console.log(`Printing ${options.path} to ${target} disallowed, already printing.`);
+			console.log(
+				`Printing ${options.path} to ${target} disallowed, already printing.`
+			);
 			return;
 		}
 
@@ -1278,12 +1446,16 @@ class NoteTextComponent extends React.Component {
 
 		if (target === 'pdf') {
 			try {
-				const pdfData = await InteropServiceHelper.exportNoteToPdf(options.noteId, {
-					printBackground: true,
-					pageSize: Setting.value('export.pdfPageSize'),
-					landscape: Setting.value('export.pdfPageOrientation') === 'landscape',
-					customCss: this.props.customCss,
-				});
+				const pdfData = await InteropServiceHelper.exportNoteToPdf(
+					options.noteId,
+					{
+						printBackground: true,
+						pageSize: Setting.value('export.pdfPageSize'),
+						landscape:
+							Setting.value('export.pdfPageOrientation') === 'landscape',
+						customCss: this.props.customCss,
+					}
+				);
 				await shim.fsDriver().writeFile(options.path, pdfData, 'buffer');
 			} catch (error) {
 				console.error(error);
@@ -1305,7 +1477,9 @@ class NoteTextComponent extends React.Component {
 
 	async commandSavePdf(args) {
 		try {
-			if (!this.state.note && !args.noteIds) throw new Error('No notes selected for pdf export');
+			if (!this.state.note && !args.noteIds) {
+				throw new Error('No notes selected for pdf export');
+			}
 
 			const noteIds = args.noteIds ? args.noteIds : [this.state.note.id];
 
@@ -1313,9 +1487,11 @@ class NoteTextComponent extends React.Component {
 			if (noteIds.length === 1) {
 				path = bridge().showSaveDialog({
 					filters: [{ name: _('PDF File'), extensions: ['pdf'] }],
-					defaultPath: await InteropServiceHelper.defaultFilename(noteIds, 'pdf'),
+					defaultPath: await InteropServiceHelper.defaultFilename(
+						noteIds,
+						'pdf'
+					),
 				});
-
 			} else {
 				path = bridge().showOpenDialog({
 					properties: ['openDirectory', 'createDirectory'],
@@ -1328,8 +1504,14 @@ class NoteTextComponent extends React.Component {
 				const note = await Note.load(noteIds[i]);
 				const folder = Folder.byId(this.props.folders, note.parent_id);
 
-				const pdfPath = (noteIds.length === 1) ? path :
-					await shim.fsDriver().findUniqueFilename(`${path}/${this.pdfFileName_(note, folder)}`);
+				const pdfPath =
+					noteIds.length === 1
+						? path
+						: await shim
+							.fsDriver()
+							.findUniqueFilename(
+								`${path}/${this.pdfFileName_(note, folder)}`
+							);
 
 				await this.printTo_('pdf', { path: pdfPath, noteId: note.id });
 			}
@@ -1340,7 +1522,9 @@ class NoteTextComponent extends React.Component {
 
 	async commandPrint() {
 		try {
-			if (!this.state.note) throw new Error(_('Only one note can be printed at a time.'));
+			if (!this.state.note) {
+				throw new Error(_('Only one note can be printed at a time.'));
+			}
 
 			await this.printTo_('printer', { noteId: this.state.note.id });
 		} catch (error) {
@@ -1395,7 +1579,10 @@ class NoteTextComponent extends React.Component {
 		const selection = this.textOffsetSelection();
 		if (!selection || selection.start === selection.end) return '';
 
-		return this.state.note.body.substr(selection.start, selection.end - selection.start);
+		return this.state.note.body.substr(
+			selection.start,
+			selection.end - selection.start
+		);
 	}
 
 	editorCopyText() {
@@ -1416,14 +1603,11 @@ class NoteTextComponent extends React.Component {
 
 		shared.noteComponent_change(this, 'body', s1 + s2);
 
-		this.updateEditorWithDelay(editor => {
+		this.updateEditorWithDelay((editor) => {
 			const range = this.selectionRange_;
 			range.setStart(range.start.row, range.start.column);
 			range.setEnd(range.start.row, range.start.column);
-			editor
-				.getSession()
-				.getSelection()
-				.setSelectionRange(range, false);
+			editor.getSession().getSelection().setSelectionRange(range, false);
 			editor.focus();
 		}, 10);
 	}
@@ -1445,10 +1629,18 @@ class NoteTextComponent extends React.Component {
 	}
 
 	textOffsetSelection() {
-		return this.selectionRange_ ? this.rangeToTextOffsets(this.selectionRange_, this.state.note.body) : null;
+		return this.selectionRange_
+			? this.rangeToTextOffsets(this.selectionRange_, this.state.note.body)
+			: null;
 	}
 
-	wrapSelectionWithStrings(string1, string2 = '', defaultText = '', replacementText = null, byLine = false) {
+	wrapSelectionWithStrings(
+		string1,
+		string2 = '',
+		defaultText = '',
+		replacementText = null,
+		byLine = false
+	) {
 		if (!this.rawEditor() || !this.state.note) return;
 
 		const selection = this.textOffsetSelection();
@@ -1456,8 +1648,16 @@ class NoteTextComponent extends React.Component {
 		let newBody = this.state.note.body;
 
 		if (selection && selection.start !== selection.end) {
-			const selectedLines = replacementText !== null ? replacementText : this.state.note.body.substr(selection.start, selection.end - selection.start);
-			const selectedStrings = byLine ? selectedLines.split(/\r?\n/) : [selectedLines];
+			const selectedLines =
+				replacementText !== null
+					? replacementText
+					: this.state.note.body.substr(
+						selection.start,
+						selection.end - selection.start
+					  );
+			const selectedStrings = byLine
+				? selectedLines.split(/\r?\n/)
+				: [selectedLines];
 
 			newBody = this.state.note.body.substr(0, selection.start);
 
@@ -1509,24 +1709,25 @@ class NoteTextComponent extends React.Component {
 				newRange.end.column += diff;
 			}
 
-			this.updateEditorWithDelay(editor => {
+			this.updateEditorWithDelay((editor) => {
 				const range = this.selectionRange_;
 				range.setStart(newRange.start.row, newRange.start.column);
 				range.setEnd(newRange.end.row, newRange.end.column);
-				editor
-					.getSession()
-					.getSelection()
-					.setSelectionRange(range, false);
+				editor.getSession().getSelection().setSelectionRange(range, false);
 				editor.focus();
 			});
 		} else {
-			const middleText = replacementText !== null ? replacementText : defaultText;
+			const middleText =
+				replacementText !== null ? replacementText : defaultText;
 			const textOffset = this.currentTextOffset();
 			const s1 = this.state.note.body.substr(0, textOffset);
 			const s2 = this.state.note.body.substr(textOffset);
 			newBody = s1 + string1 + middleText + string2 + s2;
 
-			const p = this.textOffsetToCursorPosition(textOffset + string1.length, newBody);
+			const p = this.textOffsetToCursorPosition(
+				textOffset + string1.length,
+				newBody
+			);
 			const newRange = {
 				start: { row: p.row, column: p.column },
 				end: { row: p.row, column: p.column + middleText.length },
@@ -1535,21 +1736,15 @@ class NoteTextComponent extends React.Component {
 			// BUG!! If replacementText contains newline characters, the logic
 			// to select the new text will not work.
 
-			this.updateEditorWithDelay(editor => {
+			this.updateEditorWithDelay((editor) => {
 				if (middleText && newRange) {
 					const range = this.selectionRange_;
 					range.setStart(newRange.start.row, newRange.start.column);
 					range.setEnd(newRange.end.row, newRange.end.column);
-					editor
-						.getSession()
-						.getSelection()
-						.setSelectionRange(range, false);
+					editor.getSession().getSelection().setSelectionRange(range, false);
 				} else {
 					for (let i = 0; i < string1.length; i++) {
-						editor
-							.getSession()
-							.getSelection()
-							.moveCursorRight();
+						editor.getSession().getSelection().moveCursorRight();
 					}
 				}
 				editor.focus();
@@ -1563,11 +1758,22 @@ class NoteTextComponent extends React.Component {
 
 	toggleWrapSelection(strings1, strings2, defaultText) {
 		const selection = this.textOffsetSelection();
-		const string = this.state.note.body.substr(selection.start, selection.end - selection.start);
+		const string = this.state.note.body.substr(
+			selection.start,
+			selection.end - selection.start
+		);
 		let replaced = false;
 		for (let i = 0; i < strings1.length; i++) {
 			if (string.startsWith(strings1[i]) && string.endsWith(strings1[i])) {
-				this.wrapSelectionWithStrings('', '', '', string.substr(strings1[i].length, selection.end - selection.start - (2 * strings1[i].length)));
+				this.wrapSelectionWithStrings(
+					'',
+					'',
+					'',
+					string.substr(
+						strings1[i].length,
+						selection.end - selection.start - 2 * strings1[i].length
+					)
+				);
 				replaced = true;
 				break;
 			}
@@ -1575,7 +1781,6 @@ class NoteTextComponent extends React.Component {
 		if (!replaced) {
 			this.wrapSelectionWithStrings(strings1[0], strings2[0], defaultText);
 		}
-
 	}
 
 	commandTextBold() {
@@ -1592,7 +1797,10 @@ class NoteTextComponent extends React.Component {
 
 	commandTextCode() {
 		const selection = this.textOffsetSelection();
-		const string = this.state.note.body.substr(selection.start, selection.end - selection.start);
+		const string = this.state.note.body.substr(
+			selection.start,
+			selection.end - selection.start
+		);
 
 		// Look for newlines
 		const match = string.match(/\r?\n/);
@@ -1600,7 +1808,12 @@ class NoteTextComponent extends React.Component {
 		if (match && match.length > 0) {
 			// Follow the same newline style
 			if (string.startsWith('```') && string.endsWith('```')) {
-				this.wrapSelectionWithStrings('', '', '', string.substr(4, selection.end - selection.start - 8));
+				this.wrapSelectionWithStrings(
+					'',
+					'',
+					'',
+					string.substr(4, selection.end - selection.start - 8)
+				);
 			} else {
 				this.wrapSelectionWithStrings(`\`\`\`${match[0]}`, `${match[0]}\`\`\``);
 			}
@@ -1616,10 +1829,19 @@ class NoteTextComponent extends React.Component {
 	addListItem(string1, string2 = '', defaultText = '', byLine = false) {
 		let newLine = '\n';
 		const range = this.selectionRange_;
-		if (!range || (range.start.row === range.end.row && !this.selectionRangeCurrentLine())) {
+		if (
+			!range ||
+			(range.start.row === range.end.row && !this.selectionRangeCurrentLine())
+		) {
 			newLine = '';
 		}
-		this.wrapSelectionWithStrings(newLine + string1, string2, defaultText, null, byLine);
+		this.wrapSelectionWithStrings(
+			newLine + string1,
+			string2,
+			defaultText,
+			null,
+			byLine
+		);
 	}
 
 	commandTextCheckbox() {
@@ -1633,8 +1855,14 @@ class NoteTextComponent extends React.Component {
 	// Converting multiple lines to a numbered list will use the same number on each line
 	// Not ideal, but the rendered text will still be correct.
 	commandTextListOl() {
-		let bulletNumber = markdownUtils.olLineNumber(this.selectionRangeCurrentLine());
-		if (!bulletNumber) bulletNumber = markdownUtils.olLineNumber(this.selectionRangePreviousLine());
+		let bulletNumber = markdownUtils.olLineNumber(
+			this.selectionRangeCurrentLine()
+		);
+		if (!bulletNumber) {
+			bulletNumber = markdownUtils.olLineNumber(
+				this.selectionRangePreviousLine()
+			);
+		}
 		if (!bulletNumber) bulletNumber = 0;
 		this.addListItem(`${bulletNumber + 1}. `, '', _('List item'), true);
 	}
@@ -1692,7 +1920,11 @@ class NoteTextComponent extends React.Component {
 
 	createToolbarItems(note, editorIsVisible) {
 		const toolbarItems = [];
-		if (note && this.state.folder && ['Search', 'Tag', 'SmartFilter'].includes(this.props.notesParentType)) {
+		if (
+			note &&
+			this.state.folder &&
+			['Search', 'Tag', 'SmartFilter'].includes(this.props.notesParentType)
+		) {
 			toolbarItems.push({
 				title: _('In: %s', substrWithEllipsis(this.state.folder.title, 0, 16)),
 				iconName: 'fa-book',
@@ -1710,10 +1942,12 @@ class NoteTextComponent extends React.Component {
 		toolbarItems.push({
 			tooltip: _('Back'),
 			iconName: 'fa-arrow-left',
-			enabled: (this.props.backwardHistoryNotes.length > 0),
+			enabled: this.props.backwardHistoryNotes.length > 0,
 			onClick: () => {
 				if (!this.props.backwardHistoryNotes.length) return;
-				const lastItem = this.props.backwardHistoryNotes[this.props.backwardHistoryNotes.length - 1];
+				const lastItem = this.props.backwardHistoryNotes[
+					this.props.backwardHistoryNotes.length - 1
+				];
 				this.props.dispatch({
 					type: 'FOLDER_AND_NOTE_SELECT',
 					folderId: lastItem.parent_id,
@@ -1727,10 +1961,12 @@ class NoteTextComponent extends React.Component {
 		toolbarItems.push({
 			tooltip: _('Front'),
 			iconName: 'fa-arrow-right',
-			enabled: (this.props.forwardHistoryNotes.length > 0),
+			enabled: this.props.forwardHistoryNotes.length > 0,
 			onClick: () => {
 				if (!this.props.forwardHistoryNotes.length) return;
-				const nextItem = this.props.forwardHistoryNotes[this.props.forwardHistoryNotes.length - 1];
+				const nextItem = this.props.forwardHistoryNotes[
+					this.props.forwardHistoryNotes.length - 1
+				];
 				this.props.dispatch({
 					type: 'FOLDER_AND_NOTE_SELECT',
 					folderId: nextItem.parent_id,
@@ -1741,7 +1977,10 @@ class NoteTextComponent extends React.Component {
 			},
 		});
 
-		if (note.markup_language === MarkupToHtml.MARKUP_LANGUAGE_MARKDOWN && editorIsVisible) {
+		if (
+			note.markup_language === MarkupToHtml.MARKUP_LANGUAGE_MARKDOWN &&
+			editorIsVisible
+		) {
 			toolbarItems.push({
 				tooltip: _('Bold'),
 				iconName: 'fa-bold',
@@ -1933,7 +2172,7 @@ class NoteTextComponent extends React.Component {
 	renderMultiNotes(rootStyle) {
 		const theme = themeStyle(this.props.theme);
 
-		const multiNotesButton_click = item => {
+		const multiNotesButton_click = (item) => {
 			if (item.submenu) {
 				item.submenu.popup(bridge().window());
 			} else {
@@ -1959,7 +2198,11 @@ class NoteTextComponent extends React.Component {
 			if (!item.enabled) continue;
 
 			itemComps.push(
-				<button key={item.label} style={buttonStyle} onClick={() => multiNotesButton_click(item)}>
+				<button
+					key={item.label}
+					style={buttonStyle}
+					onClick={() => multiNotesButton_click(item)}
+				>
 					{item.label}
 				</button>
 			);
@@ -1973,7 +2216,9 @@ class NoteTextComponent extends React.Component {
 
 		return (
 			<div style={rootStyle}>
-				<div style={{ display: 'flex', flexDirection: 'column' }}>{itemComps}</div>
+				<div style={{ display: 'flex', flexDirection: 'column' }}>
+					{itemComps}
+				</div>
 			</div>
 		);
 	}
@@ -1982,7 +2227,9 @@ class NoteTextComponent extends React.Component {
 		const style = this.props.style;
 		const note = this.state.note;
 		const body = note && note.body ? note.body : '';
-		const markupLanguage = note ? note.markup_language : MarkupToHtml.MARKUP_LANGUAGE_MARKDOWN;
+		const markupLanguage = note
+			? note.markup_language
+			: MarkupToHtml.MARKUP_LANGUAGE_MARKDOWN;
 		const theme = themeStyle(this.props.theme);
 		const visiblePanes = this.props.visiblePanes || ['editor', 'viewer'];
 		const isTodo = note && !!note.is_todo;
@@ -2003,7 +2250,11 @@ class NoteTextComponent extends React.Component {
 			style
 		);
 
-		const innerWidth = rootStyle.width - rootStyle.paddingLeft - rootStyle.paddingRight - borderWidth;
+		const innerWidth =
+			rootStyle.width -
+			rootStyle.paddingLeft -
+			rootStyle.paddingRight -
+			borderWidth;
 
 		if (this.state.showRevisions && note && note.id) {
 			rootStyle.paddingRight = rootStyle.paddingLeft;
@@ -2012,7 +2263,11 @@ class NoteTextComponent extends React.Component {
 			rootStyle.display = 'inline-flex';
 			return (
 				<div style={rootStyle}>
-					<NoteRevisionViewer noteId={note.id} customCss={this.props.customCss} onBack={this.noteRevisionViewer_onBack} />
+					<NoteRevisionViewer
+						noteId={note.id}
+						customCss={this.props.customCss}
+						onBack={this.noteRevisionViewer_onBack}
+					/>
 				</div>
 			);
 		}
@@ -2064,10 +2319,26 @@ class NoteTextComponent extends React.Component {
 
 		let bottomRowHeight = 0;
 		if (this.canDisplayTagBar()) {
-			bottomRowHeight = rootStyle.height - titleBarStyle.height - titleBarStyle.marginBottom - titleBarStyle.marginTop - theme.toolbarHeight - toolbarStyle.marginTop - toolbarStyle.marginBottom - tagStyle.height - tagStyle.marginBottom;
+			bottomRowHeight =
+				rootStyle.height -
+				titleBarStyle.height -
+				titleBarStyle.marginBottom -
+				titleBarStyle.marginTop -
+				theme.toolbarHeight -
+				toolbarStyle.marginTop -
+				toolbarStyle.marginBottom -
+				tagStyle.height -
+				tagStyle.marginBottom;
 		} else {
-			toolbarStyle.marginBottom = tagStyle.marginBottom,
-			bottomRowHeight = rootStyle.height - titleBarStyle.height - titleBarStyle.marginBottom - titleBarStyle.marginTop - theme.toolbarHeight - toolbarStyle.marginTop - toolbarStyle.marginBottom;
+			(toolbarStyle.marginBottom = tagStyle.marginBottom),
+			(bottomRowHeight =
+					rootStyle.height -
+					titleBarStyle.height -
+					titleBarStyle.marginBottom -
+					titleBarStyle.marginTop -
+					theme.toolbarHeight -
+					toolbarStyle.marginTop -
+					toolbarStyle.marginBottom);
 		}
 
 		bottomRowHeight -= searchBarHeight;
@@ -2114,7 +2385,10 @@ class NoteTextComponent extends React.Component {
 			viewerStyle.width = innerWidth;
 		}
 
-		if (visiblePanes.indexOf('viewer') >= 0 && visiblePanes.indexOf('editor') >= 0) {
+		if (
+			visiblePanes.indexOf('viewer') >= 0 &&
+			visiblePanes.indexOf('editor') >= 0
+		) {
 			viewerStyle.borderLeft = `1px solid ${theme.dividerColor}`;
 		} else {
 			viewerStyle.borderLeft = 'none';
@@ -2148,18 +2422,31 @@ class NoteTextComponent extends React.Component {
 				markerOptions.separateWordSearch = false;
 				markerOptions.searchTimestamp = this.state.localSearch.timestamp;
 			} else {
-				const search = BaseModel.byId(this.props.searches, this.props.selectedSearchId);
+				const search = BaseModel.byId(
+					this.props.searches,
+					this.props.selectedSearchId
+				);
 				if (search) {
-					const parsedQuery = SearchEngine.instance().parseQuery(search.query_pattern);
+					const parsedQuery = SearchEngine.instance().parseQuery(
+						search.query_pattern
+					);
 					keywords = SearchEngine.instance().allParsedQueryTerms(parsedQuery);
 				}
 			}
 
 			const keywordHash = JSON.stringify(keywords);
-			if (htmlHasChanged || keywordHash !== this.lastSetMarkers_ || !ObjectUtils.fieldsEqual(this.lastSetMarkersOptions_, markerOptions)) {
+			if (
+				htmlHasChanged ||
+				keywordHash !== this.lastSetMarkers_ ||
+				!ObjectUtils.fieldsEqual(this.lastSetMarkersOptions_, markerOptions)
+			) {
 				this.lastSetMarkers_ = keywordHash;
 				this.lastSetMarkersOptions_ = Object.assign({}, markerOptions);
-				this.webviewRef_.current.wrappedInstance.send('setMarkers', keywords, markerOptions);
+				this.webviewRef_.current.wrappedInstance.send(
+					'setMarkers',
+					keywords,
+					markerOptions
+				);
 			}
 		}
 
@@ -2171,20 +2458,26 @@ class NoteTextComponent extends React.Component {
 		const titleEditor = (
 			<input
 				type="text"
-				ref={elem => {
+				ref={(elem) => {
 					this.titleField_ = elem;
 				}}
 				style={titleEditorStyle}
 				value={note && note.title ? note.title : ''}
-				onChange={event => {
+				onChange={(event) => {
 					this.title_changeText(event);
 				}}
 				onKeyDown={this.titleField_keyDown}
-				placeholder={this.props.provisionalNoteIds.includes(note.id) ? _('Creating new %s...', isTodo ? _('to-do') : _('note')) : ''}
+				placeholder={
+					this.props.provisionalNoteIds.includes(note.id)
+						? _('Creating new %s...', isTodo ? _('to-do') : _('note'))
+						: ''
+				}
 			/>
 		);
 
-		const tagList = this.canDisplayTagBar() ? <TagList style={tagStyle} items={this.state.noteTags} /> : null;
+		const tagList = this.canDisplayTagBar() ? (
+			<TagList style={tagStyle} items={this.state.noteTags} />
+		) : null;
 
 		const titleBarMenuButton = (
 			<IconButton
@@ -2199,9 +2492,22 @@ class NoteTextComponent extends React.Component {
 			/>
 		);
 
-		const titleBarDate = <span style={Object.assign({}, theme.textStyle, { color: theme.colorFaded })}>{time.formatMsToLocal(note.user_updated_time)}</span>;
+		const titleBarDate = (
+			<span
+				style={Object.assign({}, theme.textStyle, { color: theme.colorFaded })}
+			>
+				{time.formatMsToLocal(note.user_updated_time)}
+			</span>
+		);
 
-		const viewer = <NoteTextViewer ref={this.webviewRef_} viewerStyle={viewerStyle} onDomReady={this.webview_domReady} onIpcMessage={this.webview_ipcMessage} />;
+		const viewer = (
+			<NoteTextViewer
+				ref={this.webviewRef_}
+				viewerStyle={viewerStyle}
+				onDomReady={this.webview_domReady}
+				onIpcMessage={this.webview_ipcMessage}
+			/>
+		);
 
 		const editorRootStyle = Object.assign({}, editorStyle);
 		delete editorRootStyle.width;
@@ -2220,7 +2526,9 @@ class NoteTextComponent extends React.Component {
 		const editor = (
 			<AceEditor
 				value={body}
-				mode={markupLanguage === Note.MARKUP_LANGUAGE_HTML ? 'text' : 'markdown'}
+				mode={
+					markupLanguage === Note.MARKUP_LANGUAGE_HTML ? 'text' : 'markdown'
+				}
 				theme={editorRootStyle.editorTheme}
 				style={editorRootStyle}
 				width={`${editorStyle.width}px`}
@@ -2232,10 +2540,10 @@ class NoteTextComponent extends React.Component {
 				onScroll={() => {
 					this.editor_scroll();
 				}}
-				ref={elem => {
+				ref={(elem) => {
 					this.editor_ref(elem);
 				}}
-				onChange={body => {
+				onChange={(body) => {
 					this.aceEditor_change(body);
 				}}
 				showPrintMargin={false}
@@ -2245,7 +2553,8 @@ class NoteTextComponent extends React.Component {
 				// Enable/Disable the autoclosing braces
 				setOptions={{
 					behavioursEnabled: Setting.value('editor.autoMatchingBraces'),
-					useSoftTabs: false }}
+					useSoftTabs: false,
+				}}
 				// Disable warning: "Automatically scrolling cursor into view after
 				// selection change this will be disabled in the next version set
 				// editor.$blockScrolling = Infinity to disable this message"
@@ -2296,9 +2605,10 @@ class NoteTextComponent extends React.Component {
 	}
 }
 
-const mapStateToProps = state => {
+const mapStateToProps = (state) => {
 	return {
-		noteId: state.selectedNoteIds.length === 1 ? state.selectedNoteIds[0] : null,
+		noteId:
+			state.selectedNoteIds.length === 1 ? state.selectedNoteIds[0] : null,
 		notes: state.notes,
 		selectedNoteIds: state.selectedNoteIds,
 		selectedNoteHash: state.selectedNoteHash,

@@ -87,6 +87,7 @@
 			"markdown",
 			"latex",
 			"plaintext"
-		]
+		],
+		"editor.formatOnSave": false
 	},
 }
